@@ -1,6 +1,6 @@
 # Byte-compiled / optimized / DLL files
 __pycache__/
-.ipynb_*/
+.ipynb_checkpoints/
 *.py[cod]
 
 *.swp
