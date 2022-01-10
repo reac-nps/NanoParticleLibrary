@@ -1,6 +1,7 @@
 import numpy as np
 
 from Core.BaseNanoparticle import BaseNanoparticle
+from Core.Adsorption import FindAdsorptionSites
 
 from ase.cluster import Octahedron
 from ase import Atoms
@@ -9,6 +10,8 @@ from ase import Atoms
 class Nanoparticle(BaseNanoparticle):
     def __init__(self):
         BaseNanoparticle.__init__(self)
+
+        self.adsorption = FindAdsorptionSites()
 
     def truncated_octahedron(self, height, cutoff, stoichiometry, lattice_constant=3.9, alloy=False):
         octa = Octahedron('Pt', height, cutoff, latticeconstant=lattice_constant, alloy=alloy)
@@ -46,3 +49,21 @@ class Nanoparticle(BaseNanoparticle):
             self.transform_atoms(excess_atoms[-difference:], [symbol]*difference)
             excess_atoms = excess_atoms[:-difference]
         return
+
+    def get_adsoption_site_ocupation(self, random_vector = None):
+        # random_vector = dict() 
+        self.adsorption_site_list.construct(self)
+        total_adsorption_sites = self.adsorption_site_list.get_total_number_of_adsorption_sites()
+        occupational_vector = [0 for _ in range(total_adsorption_sites)]
+
+        if random_vector is not None:
+            n_adsorbates = random_vector['n_adsorbates']
+            occupied_sites_indices = np.random.choice(np.arange(total_adsorption_sites), n_adsorbates, replace=False)
+            for site_index in occupied_sites_indices:
+                occupational_vector[site_index] = 1
+            return occupational_vector
+        else:
+            return occupational_vector
+
+
+

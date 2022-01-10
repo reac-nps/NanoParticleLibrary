@@ -6,11 +6,60 @@ import copy
 import itertools
 import numpy as np
 
+from collections import defaultdict
 
-class Adsorption():
-
+class AdsorptionSiteList():
     def __init__(self):
-        pass
+        self.list = defaultdict(lambda : set())
+
+    def __getitem__(self, item):
+        return self.list[item]
+
+    def __setitem__(self, key, value):
+        self.list[key] = value
+
+    def construct(self, particle):
+        adsorption_site_list = self.build_adsorption_site_list(particle)
+        for site_index, atom_indices in enumerate(adsorption_site_list):
+            self.list[site_index] = set(atom_indices)
+
+    def build_adsorption_site_list(self, particle):
+        def find_plane_for_bridge_atoms(particle, indices):
+            uncoordinated_atoms = set(particle.get_atom_indices_from_coordination_number(range(12)))
+            shell_1 = set(particle.get_coordination_atoms(indices[0]))
+            shell_2 = set(particle.get_coordination_atoms(indices[1]))
+            shared_atoms = uncoordinated_atoms.intersection(shell_1.intersection(shell_2))
+            return list(shared_atoms)
+
+        atoms_in_surface = set(particle.get_atom_indices_from_coordination_number(range(10)))
+
+        ontop_sites = []
+        for atom in atoms_in_surface:
+            ontop_sites.append([atom])
+
+        bridge_sites = []
+        for central_atom_index in atoms_in_surface:
+            central_atom_nearest_neighbors = set(particle.get_coordination_atoms(central_atom_index))
+            for nearest_neighbor in atoms_in_surface.intersection(central_atom_nearest_neighbors):
+                pair = sorted([central_atom_index, nearest_neighbor])
+                if pair not in bridge_sites:
+                    bridge_sites.append(pair)
+
+        hollow_sites = []
+        for pair in bridge_sites:
+            for third_atom in find_plane_for_bridge_atoms(particle, pair):
+                triplet = copy.copy(pair)
+                triplet.append(third_atom)
+                triplet = sorted(triplet)
+                if triplet not in hollow_sites:
+                    hollow_sites.append(triplet)
+
+        return ontop_sites + bridge_sites + hollow_sites
+
+    def get_total_number_of_adsorption_sites(self):
+        return len(self.list)
+
+
         
 class FindAdsorptionSites():
     """ Class that identify and place add atoms based on the Generalized coordination Numbers of the nanoparticles"""

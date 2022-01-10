@@ -2,6 +2,7 @@ import pickle
 
 from Core.AtomWrapper import AtomWrapper
 from Core.NeighborList import NeighborList
+from Core.Adsorption import AdsorptionSiteList
 
 from ase import Atoms
 from ase.io import read, write
@@ -27,6 +28,7 @@ class BaseNanoparticle:
     def __init__(self):
         self.atoms = AtomWrapper()
         self.neighbor_list = NeighborList()
+        self.adsorption_site_list = AdsorptionSiteList()
 
         self.energies = dict()
 

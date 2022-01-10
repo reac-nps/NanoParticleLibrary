@@ -9,6 +9,9 @@ class RandomExchangeOperator:
         self.n_symbol1_atoms = 0
         self.n_symbol2_atoms = 0
 
+        self.n_adsorbates = 0
+        self.n_adsorption_sites = 0
+
         self.max_exchanges = 0
         self.p_geometric = p_geometric
 
@@ -25,6 +28,14 @@ class RandomExchangeOperator:
 
         self.max_exchanges = min(self.n_symbol1_atoms, self.n_symbol2_atoms)
 
+    def bind_particle(self, particle, n_adsorbates):
+        self.bind_particle(particle)
+
+        self.n_adsorbates = n_adsorbates
+        self.n_adsorption_sites = particle.get_total_n_adsorption_site() # TO create
+        
+
+
     def random_exchange(self, particle):
         n_exchanges = min(np.random.geometric(p=self.p_geometric, size=1)[0], self.max_exchanges)
         symbol1_indices = np.random.choice(particle.get_indices_by_symbol(self.symbol1), n_exchanges, replace=False)
@@ -32,6 +43,15 @@ class RandomExchangeOperator:
 
         particle.swap_symbols(zip(symbol1_indices, symbol2_indices))
         return list(zip(symbol1_indices, symbol2_indices))
+
+    def random_adsorbate_migration(self, particle):
+
+        n_exchanges = min(np.random.geometric(p=self.p_geometric, size=1)[0], self.max_adsorbate_exchanges)
+        occupied_site_indices = np.random.choice(particle.get_occupied_ads_sites(), n_exchanges, replace=False)
+        unoccupied_site_indices = np.random.choice(particle.get_unoccupied_ads_sites(), n_exchanges, replace=False)
+
+
+
 
     def random_adsorbate_migration(self, ads_sites_list, number_of_ads, shared_atoms_by_sites):
         adsorbate_sites_indices = np.arange(len(ads_sites_list))
