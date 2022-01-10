@@ -240,16 +240,16 @@ def energy_coorection(energy, start_particle, sites_occupied, adsorbate):
     return energy + correction
 
 def random_adsorbate_migration(ads_sites_list, number_of_ads, shared_atoms_by_sites):
-        adsorbate_sites_indices = np.arange(len(ads_sites_list))
+    adsorbate_sites_indices = np.arange(len(ads_sites_list))
 
-        initial_sites_indices = []
-        initial_sites_atoms = set()
+    initial_sites_indices = []
+    initial_sites_atoms = set()
 
-        while len(initial_sites_indices) < number_of_ads and len(adsorbate_sites_indices) > 0 :
-            random_site_index = np.random.choice(adsorbate_sites_indices)
-            random_site_atoms = set(ads_sites_list[random_site_index])
-            if len(initial_sites_atoms.intersection(random_site_atoms)) < shared_atoms_by_sites:
-                initial_sites_indices.append(random_site_index)
-                initial_sites_atoms = initial_sites_atoms.union(random_site_atoms)
-            adsorbate_sites_indices = np.delete(adsorbate_sites_indices, np.where(adsorbate_sites_indices == random_site_index)[0])
-        return initial_sites_indices
+    while len(initial_sites_indices) < number_of_ads and len(adsorbate_sites_indices) > 0 :
+        random_site_index = np.random.choice(adsorbate_sites_indices)
+        random_site_atoms = set(ads_sites_list[random_site_index])
+        if len(initial_sites_atoms.intersection(random_site_atoms)) < shared_atoms_by_sites:
+            initial_sites_indices.append(random_site_index)
+            initial_sites_atoms = initial_sites_atoms.union(random_site_atoms)
+        adsorbate_sites_indices = np.delete(adsorbate_sites_indices, np.where(adsorbate_sites_indices == random_site_index)[0])
+    return initial_sites_indices
