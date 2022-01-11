@@ -9,8 +9,11 @@ import numpy as np
 from collections import defaultdict
 
 class AdsorptionSiteList():
+
     def __init__(self):
         self.list = defaultdict(lambda : set())
+        self.total_n_sites = 0
+        self.occupation_vector = []
 
     def __getitem__(self, item):
         return self.list[item]
@@ -19,11 +22,42 @@ class AdsorptionSiteList():
         self.list[key] = value
 
     def construct(self, particle):
-        adsorption_site_list = self.build_adsorption_site_list(particle)
+        adsorption_site_list = self.build_site_list(particle)
         for site_index, atom_indices in enumerate(adsorption_site_list):
             self.list[site_index] = set(atom_indices)
 
-    def build_adsorption_site_list(self, particle):
+        self.total_n_sites = len(self.list)
+        self.occupation_vector = np.array([0 for _ in range(self.total_n_sites)])
+
+    def random_occupation(self, number_of_adsorbates):
+        # Reset the occupation vector
+        self.occupation_vector = np.array([0 for _ in range(self.total_n_sites)])
+
+        occupied_sites_indices = np.random.choice(np.arange(self.total_n_sites), number_of_adsorbates, replace=False)
+        for site_index in occupied_sites_indices:
+                self.occupation_vector[site_index] = 1 
+
+    def get_total_number_of_sites(self):
+        return self.total_n_sites
+
+    def get_number_of_adsorbates(self):
+        return len(self.get_occupation_status_by_indices(1))
+
+    def get_site_atom_indices(self, index):
+        return self.list[index]
+
+    def get_occupation_status_by_indices(self, status):
+        # status : occupied (1) or unoccupied (0) adsorption site
+        return np.where(self.occupation_vector == status)[0]
+
+    def occupation_vector(self):
+        return self.occupation_vector
+
+    def swap_status(self, index_pairs):
+        for idx1, idx2 in index_pairs:
+            self.occupation_vector[idx1], self.occupation_vector[idx2] = self.occupation_vector[idx2], self.occupation_vector[idx1]
+
+    def build_site_list(self, particle):
         def find_plane_for_bridge_atoms(particle, indices):
             uncoordinated_atoms = set(particle.get_atom_indices_from_coordination_number(range(12)))
             shell_1 = set(particle.get_coordination_atoms(indices[0]))
@@ -55,9 +89,6 @@ class AdsorptionSiteList():
                     hollow_sites.append(triplet)
 
         return ontop_sites + bridge_sites + hollow_sites
-
-    def get_total_number_of_adsorption_sites(self):
-        return len(self.list)
 
 
         

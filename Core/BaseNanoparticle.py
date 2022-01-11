@@ -478,3 +478,37 @@ class BaseNanoparticle:
         if len(self.get_all_symbols()) == 1:
             return True
         return False
+
+    ### ADSORPTION SECTION
+
+    def construct_adsorption_list(self):
+        self.adsorption_site_list.construct(self)
+
+    def get_adsorption_list(self):
+        return self.adsorption_site_list
+
+    def get_total_number_of_sites(self):
+        return self.adsorption_site_list.get_total_number_of_sites()
+
+    def get_site_atom_indices(self, index):
+        return self.adsorption_site_list.get_site_atom_indices(index)
+
+    def random_occupation(self, number_of_adsorbates):
+        self.adsorption_site_list.random_occupation(number_of_adsorbates)
+        
+    def get_occupation_vector(self):
+        return self.adsorption_site_list.get_occupation_vector()
+
+    def get_occupation_status_by_indices(self, status):
+        return self.adsorption_site_list.get_occupation_status_by_indices(status)
+
+    def get_number_of_adsorbates(self):
+        return self.adsorption_site_list.get_number_of_adsorbates()
+
+    def get_indices_of_adsorbates(self):
+        return self.adsorption_site_list.get_occupation_status_by_indices(1)
+
+    def swap_status(self, index_pairs):
+        self.adsorption_site_list.swap_status(index_pairs)
+        
+

@@ -1,4 +1,6 @@
+from collections import defaultdict
 import numpy as np
+import itertools
 import copy
 
 
@@ -186,3 +188,37 @@ class DipoleMomentCalculator(SimpleFeatureClassifier):
         feature_vector = np.average(dipole_moments)#/particle.get_n_atoms()
 
         particle.set_feature_vector(self.feature_key, feature_vector)
+
+class AdsorptionFeatureVector(SimpleFeatureClassifier):
+
+    def __init__(self, symbols):
+        SimpleFeatureClassifier.__init__(self, symbols)
+        self.feature_key = 'ADS'
+        self.features_type = defaultdict(lambda : 0)
+        self.n_features = 0
+
+        self.get_features(symbols)
+
+
+    def compute_feature_vector(self, particle):
+        feature_vector = np.array([0 for _ in range(self.n_features)])
+        for site_occupied in particle.get_occupation_status_by_indices(1):
+            site_type = sorted(particle.get_symbols(list(particle.get_site_atom_indices(site_occupied))))
+            site_type = tuple(site_type)
+            index = self.features_type[site_type]
+            feature_vector[index] += 1
+
+        particle.set_feature_vector(self.feature_key, feature_vector)
+
+
+
+    def get_features(self, symbols):
+        symbols = sorted(symbols)
+        index = 0
+        for number_of_atom_in_site in range(1,4):
+            for site_type in itertools.combinations_with_replacement(symbols,number_of_atom_in_site):
+                self.features_type[site_type] = index
+                index += 1
+        self.n_features = len(self.features_type)
+
+

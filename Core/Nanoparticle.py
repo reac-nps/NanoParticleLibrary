@@ -50,20 +50,5 @@ class Nanoparticle(BaseNanoparticle):
             excess_atoms = excess_atoms[:-difference]
         return
 
-    def get_adsoption_site_ocupation(self, random_vector = None):
-        # random_vector = dict() 
-        self.adsorption_site_list.construct(self)
-        total_adsorption_sites = self.adsorption_site_list.get_total_number_of_adsorption_sites()
-        occupational_vector = [0 for _ in range(total_adsorption_sites)]
-
-        if random_vector is not None:
-            n_adsorbates = random_vector['n_adsorbates']
-            occupied_sites_indices = np.random.choice(np.arange(total_adsorption_sites), n_adsorbates, replace=False)
-            for site_index in occupied_sites_indices:
-                occupational_vector[site_index] = 1
-            return occupational_vector
-        else:
-            return occupational_vector
-
 
 
