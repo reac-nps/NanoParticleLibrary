@@ -229,10 +229,11 @@ class PlaceAddAtoms():
             if len(site) == 2:
                 cn1 = particle.get_coordination_number(site[0])
                 cn2 = particle.get_coordination_number(site[1])
-                if cn1 < 8 and  cn2 < 8:
+                shared_atoms = set(particle.get_coordination_atoms(site[0])).intersection(set(particle.get_coordination_atoms(site[1])))
+                corner = set(particle.get_atom_indices_from_coordination_number([4,6])).intersection(shared_atoms)
+                if cn1 < 8 and  cn2 < 8 and len(corner) == 0:    
                     positions = [particle.get_position(x) for x in site]
                     normal_vector = math.get_bridge_perpendicular_line(positions, self.com)
-
                 else:    
                     third_atom = self.adsorption_sites.find_plane_for_bridge_atoms(particle, site)
                     if isinstance(third_atom, int):
