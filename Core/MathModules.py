@@ -52,6 +52,7 @@ def get_bridge_perpendicular_line(positions, center_of_mass):
     a, a1 = positions
     n,_ = get_unit_vector(a - a1)
     p = center_of_mass
-    return (p - a) - (np.dot((p-a), n)) * n
+    direction = (p - a) - (np.dot((p-a), n)) * n
+    return direction / np.linalg.norm(direction)
 
     
