@@ -242,6 +242,7 @@ def run_monte_carlo_for_adsorbates(beta, max_steps, start_particle, energy_calcu
 
 def run_monte_carlo_ordering_adsorbates(beta, max_steps, start_particle, ordering_energy_calculator, adsorbates_energy_calculator, n_adsorbates, local_feature_classifier):
     from Core.GlobalFeatureClassifier import AdsorptionFeatureVector
+    from Core.EnergyCalculator import LateralInteractionCalculator
 
     exchange_operator = RandomExchangeOperator(0.5)
     exchange_operator.bind_adsorbates(start_particle, n_adsorbates)
@@ -257,10 +258,16 @@ def run_monte_carlo_ordering_adsorbates(beta, max_steps, start_particle, orderin
 
     initial_adsorbed_sites = start_particle.get_indices_of_adsorbates()
 
+    lateral_interaction_calculator = LateralInteractionCalculator()
+    lateral_interaction_energy_key = lateral_interaction_calculator.energy_key
+    lateral_interaction_calculator.bind_grid(start_particle)
+    lateral_interaction_calculator.compute_energy(start_particle)
+
     def get_ordering_and_adsorbates_energy(particle):
         ordering_energy = start_particle.get_energy(ordering_energy_key)
         adsorbates_energy = start_particle.get_energy(adsorbates_energy_key)
-        particle.set_energy('TOT', ordering_energy + adsorbates_energy)
+        lateral_interaction = start_particle.get_energy(lateral_interaction_energy_key)
+        particle.set_energy('TOT', ordering_energy + adsorbates_energy+lateral_interaction)
         return particle.get_energy('TOT')
 
     #start_energy = start_particle.get_energy(ordering_energy_key) + start_particle.get_energy(adsorbates_energy_key)
@@ -292,6 +299,7 @@ def run_monte_carlo_ordering_adsorbates(beta, max_steps, start_particle, orderin
 
         ordering_energy_calculator.compute_energy(start_particle)
         adsorbates_energy_calculator.compute_energy(start_particle)
+        lateral_interaction_calculator.compute_energy(start_particle)
         new_energy = get_ordering_and_adsorbates_energy(start_particle)
 
         delta_e = new_energy - start_energy

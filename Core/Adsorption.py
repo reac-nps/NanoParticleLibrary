@@ -38,6 +38,9 @@ class AdsorptionSiteList():
         for site_index in occupied_sites_indices:
                 self.occupation_vector[site_index] = 1 
 
+    def get_occupation_vector(self):
+        return self.occupation_vector
+
     def get_total_number_of_sites(self):
         return self.total_n_sites
 

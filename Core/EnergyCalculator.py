@@ -213,7 +213,7 @@ class DipoleMomentCalculator:
         self.total_dipole_moment = None
         self.dipole_moments = None
         self.environments = None
-        pass
+        
 
     def compute_dipole_moment(self, particle, charges = [1, -1]):
     
@@ -245,7 +245,55 @@ class DipoleMomentCalculator:
     def get_environments(self):
         return self.environments
 
-        
+
+class LateralInteractionCalculator:
+    
+    def __init__(self):
+        EnergyCalculator.__init__(self)
+        self.interaction_matrix = None
+        self.energy_key = 'Lateral Interaction'
+
+    def construct_interatomic_potential_matrix(self, particle):
+        def construct_adsorbate_grid(particle):
+            from Core.Adsorption import PlaceAddAtoms
+            particle.construct_adsorption_list()
+            n_sites = particle.get_total_number_of_sites()
+            ads_site_list = particle.get_adsorption_list()
+            ads_placer = PlaceAddAtoms(particle.get_all_symbols())
+            ads_placer.bind_particle(particle)
+            for f in range(0, n_sites):
+                particle = ads_placer.place_add_atom(particle, 'O', [list(ads_site_list[f])])
+            return particle
+        def get_adsorbate_distance_matrix(particle, n_atoms_np):
+            ase_atoms = particle.get_ase_atoms()
+            adsorbate_all_distances = ase_atoms.get_all_distances()[n_atoms_np:]
+            distance_matrix = np.array([row[n_atoms_np:] for row in adsorbate_all_distances])
+            return distance_matrix
+
+        n_atoms_np = particle.get_n_atoms()
+        particle = construct_adsorbate_grid(particle)
+        distance_matrix = get_adsorbate_distance_matrix(particle, 85)
+        interaction_matrix = np.zeros(distance_matrix.shape)
+        interaction_matrix = 10/distance_matrix**2
+
+        dimension = len(interaction_matrix)
+        for i in np.arange(dimension):
+            interaction_matrix[i][i] = 0
+
+        self.interaction_matrix = interaction_matrix
+
+    def bind_grid(self, particle):
+        particle_for_grid = copy.deepcopy(particle)
+        self.construct_interatomic_potential_matrix(particle_for_grid)
+
+    def compute_energy(self, particle):
+        lateral_interaction = 0
+        occupied_sites_indices = particle.get_occupation_status_by_indices(1)
+        for idx, site_index in enumerate(occupied_sites_indices):
+            for pair_index in occupied_sites_indices[idx:]:
+                lateral_interaction += self.interaction_matrix[site_index][pair_index]
+                
+        particle.set_energy(self.energy_key, lateral_interaction)        
 
 # TODO move to relevant file -> Basin Hopping, Local optimization
 # TODO remove scaling factors from topological descriptors
