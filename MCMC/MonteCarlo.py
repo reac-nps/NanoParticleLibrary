@@ -154,26 +154,37 @@ def run_monte_carlo(beta, max_steps, start_particle, energy_calculator, local_fe
     accepted_energies.append((accepted_energies[-1][0], total_steps))#, stablest_adsorption_sites
     return [best_particle, accepted_energies]
 
-def run_monte_carlo_for_adsorbates(beta, max_steps, start_particle, energy_calculator, n_adsorbates):
+def run_monte_carlo_for_adsorbates(beta, max_steps, start_particle, adsorbates_energy, n_adsorbates):
     from Core.GlobalFeatureClassifier import AdsorptionFeatureVector
+    from Core.EnergyCalculator import LateralInteractionCalculator
 
     exchange_operator = RandomExchangeOperator(0.5)
     exchange_operator.bind_adsorbates(start_particle, n_adsorbates)
 
     symbols = start_particle.get_all_symbols()
-    energy_key = energy_calculator.get_energy_key()
+    adsorbates_energy_key = adsorbates_energy.get_energy_key()
 
     global_feature_classifier = AdsorptionFeatureVector(symbols)
     global_feature_classifier.compute_feature_vector(start_particle)
-    energy_calculator.compute_energy(start_particle)
+    adsorbates_energy.compute_energy(start_particle)
 
+    lateral_interaction_calculator = LateralInteractionCalculator()
+    lateral_interaction_energy_key = lateral_interaction_calculator.energy_key
+    lateral_interaction_calculator.bind_grid(start_particle)
+    lateral_interaction_calculator.compute_energy(start_particle)
+
+    def get_ordering_and_adsorbates_energy(particle):
+        adsorbates_energy = start_particle.get_energy(adsorbates_energy_key)
+        lateral_interaction = start_particle.get_energy(lateral_interaction_energy_key)
+        particle.set_energy('TOT', adsorbates_energy+lateral_interaction)
+        return particle.get_energy('TOT')
     #energy_key, local_env_calculator, exchange_operator = setup_monte_carlo(start_particle, energy_calculator, local_feature_classifier)
 
 
     #initial_adsorbed_sites = start_particle.get_indices_of_adsorbates()
     
 
-    start_energy = start_particle.get_energy(energy_key)
+    start_energy = get_ordering_and_adsorbates_energy(start_particle)
     lowest_energy = start_energy
     sites_occupied = start_particle.get_indices_of_adsorbates()
     accepted_energies = [(lowest_energy, 0, sites_occupied)]
@@ -190,13 +201,14 @@ def run_monte_carlo_for_adsorbates(beta, max_steps, start_particle, energy_calcu
             print("Step: {}".format(total_steps))
             print("Lowest energy: {}".format(lowest_energy))
 
-        exchanges = exchange_operator.coupled_random_exchange(start_particle)
+        exchanges = exchange_operator.random_adsorbate_migration(start_particle)
 
         accepted_particle = copy.deepcopy(start_particle)
 
         global_feature_classifier.compute_feature_vector(start_particle)
-        energy_calculator.compute_energy(start_particle)
-        new_energy = start_particle.get_energy(energy_key)
+        adsorbates_energy.compute_energy(start_particle)
+        lateral_interaction_calculator.compute_energy(start_particle)
+        new_energy = get_ordering_and_adsorbates_energy(start_particle)
 
 
         delta_e = new_energy - start_energy
@@ -207,7 +219,7 @@ def run_monte_carlo_for_adsorbates(beta, max_steps, start_particle, energy_calcu
                 if new_energy > start_energy:
                     start_particle.swap_status(exchanges)
                     best_particle = copy.deepcopy(start_particle.get_as_dictionary(fields))
-                    best_particle['energies'][energy_key] = copy.deepcopy(start_energy)
+                    best_particle['energies'][adsorbates_energy_key] = copy.deepcopy(start_energy)
                     best_particle['ads'] = copy.deepcopy(start_particle.get_indices_of_adsorbates())
                     start_particle.swap_status(exchanges)
 
@@ -228,11 +240,11 @@ def run_monte_carlo_for_adsorbates(beta, max_steps, start_particle, energy_calcu
 
             # roll back exchanges and make sure features and environments are up-to-date
             start_particle.swap_status(exchanges)
-            start_particle.set_energy(energy_key, start_energy)
+            start_particle.set_energy('TOT', start_energy)
 
             if found_new_solution:
                 best_particle = copy.deepcopy(start_particle.get_as_dictionary(fields))
-                best_particle['energies'][energy_key] = copy.deepcopy(start_energy)
+                best_particle['energies'][adsorbates_energy_key] = copy.deepcopy(start_energy)
                 best_particle['ads'] = copy.deepcopy(start_particle.get_indices_of_adsorbates())
                 found_new_solution = False
 

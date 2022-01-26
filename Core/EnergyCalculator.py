@@ -252,6 +252,7 @@ class LateralInteractionCalculator:
         EnergyCalculator.__init__(self)
         self.interaction_matrix = None
         self.energy_key = 'Lateral Interaction'
+        self.a = 6
 
     def construct_interatomic_potential_matrix(self, particle):
         def construct_adsorbate_grid(particle):
@@ -274,7 +275,7 @@ class LateralInteractionCalculator:
         particle = construct_adsorbate_grid(particle)
         distance_matrix = get_adsorbate_distance_matrix(particle, 85)
         interaction_matrix = np.zeros(distance_matrix.shape)
-        interaction_matrix = 100/distance_matrix**2
+        interaction_matrix = self.a/distance_matrix**2
 
         dimension = len(interaction_matrix)
         for i in np.arange(dimension):

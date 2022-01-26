@@ -19,7 +19,8 @@ class RandomExchangeOperator:
     def bind_particle(self, particle):
         symbols = sorted(particle.atoms.get_all_symbols())
         self.symbol1 = symbols[0]
-        self.symbol2 = symbols[1]
+        if len(symbols) == 2:
+            self.symbol2 = symbols[1]
 
         symbol1_indices = particle.get_indices_by_symbol(self.symbol1)
         symbol2_indices = particle.get_indices_by_symbol(self.symbol2)

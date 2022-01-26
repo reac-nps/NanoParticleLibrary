@@ -37,7 +37,8 @@ class SimpleFeatureClassifier(GlobalFeatureClassifier):
         symbols_copy = copy.deepcopy(symbols)
         symbols_copy.sort()
         self.symbol_a = symbols_copy[0]
-        self.symbol_b = symbols_copy[1]
+        if len(symbols) == 2:
+            self.symbol_b = symbols_copy[1]
 
         self.feature_key = 'SFC'
         return
