@@ -221,6 +221,8 @@ def run_monte_carlo_for_adsorbates(beta, max_steps, start_particle, adsorbates_e
                     best_particle = copy.deepcopy(start_particle.get_as_dictionary(fields))
                     best_particle['energies'][adsorbates_energy_key] = copy.deepcopy(start_energy)
                     best_particle['ads'] = copy.deepcopy(start_particle.get_indices_of_adsorbates())
+                    best_particle['lateral_interaction'] = start_particle.get_energy(lateral_interaction_energy_key)
+                    best_particle['adsorbates_energy'] = start_particle.get_energy(adsorbates_energy_key)
                     start_particle.swap_status(exchanges)
 
             sites_occupied = start_particle.get_indices_of_adsorbates()
@@ -246,6 +248,8 @@ def run_monte_carlo_for_adsorbates(beta, max_steps, start_particle, adsorbates_e
                 best_particle = copy.deepcopy(start_particle.get_as_dictionary(fields))
                 best_particle['energies'][adsorbates_energy_key] = copy.deepcopy(start_energy)
                 best_particle['ads'] = copy.deepcopy(start_particle.get_indices_of_adsorbates())
+                best_particle['lateral_interaction'] = start_particle.get_energy(lateral_interaction_energy_key)
+                best_particle['adsorbates_energy'] = start_particle.get_energy(adsorbates_energy_key)
                 found_new_solution = False
 
     accepted_energies.append((accepted_energies[-1][0], total_steps))
