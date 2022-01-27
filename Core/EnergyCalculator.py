@@ -1,5 +1,5 @@
 from ase.optimize import BFGS
-#from asap3 import EMT
+from ase.calculators.emt import EMT
 
 import numpy as np
 import copy
@@ -262,9 +262,10 @@ class LateralInteractionCalculator:
             ads_site_list = particle.get_adsorption_list()
             ads_placer = PlaceAddAtoms(particle.get_all_symbols())
             ads_placer.bind_particle(particle)
-            for f in range(0, n_sites):
-                particle = ads_placer.place_add_atom(particle, 'O', [list(ads_site_list[f])])
+            adsorbate_positions = [list(ads_site_list[site]) for site in range(n_sites)] 
+            particle = ads_placer.place_add_atom(particle, 'O', adsorbate_positions)
             return particle
+
         def get_adsorbate_distance_matrix(particle, n_atoms_np):
             ase_atoms = particle.get_ase_atoms()
             adsorbate_all_distances = ase_atoms.get_all_distances()[n_atoms_np:]
@@ -273,7 +274,7 @@ class LateralInteractionCalculator:
 
         n_atoms_np = particle.get_n_atoms()
         particle = construct_adsorbate_grid(particle)
-        distance_matrix = get_adsorbate_distance_matrix(particle, 85)
+        distance_matrix = get_adsorbate_distance_matrix(particle, n_atoms_np)
         interaction_matrix = np.zeros(distance_matrix.shape)
         interaction_matrix = self.a/distance_matrix**2
 
