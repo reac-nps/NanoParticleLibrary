@@ -296,7 +296,7 @@ def run_monte_carlo_ordering_adsorbates(beta, max_steps, start_particle, orderin
     found_new_solution = False
     fields = ['energies', 'symbols', 'positions']
     best_particle = copy.deepcopy(start_particle.get_as_dictionary(fields))
-
+    best_particles = list()
     total_steps = 0
     no_improvement = 0
     while no_improvement < max_steps:
@@ -329,6 +329,7 @@ def run_monte_carlo_ordering_adsorbates(beta, max_steps, start_particle, orderin
                     best_particle = copy.deepcopy(start_particle.get_as_dictionary(fields))
                     best_particle['energies'][ordering_energy_key] = copy.deepcopy(start_energy)
                     best_particle['ads'] = copy.deepcopy(start_particle.get_indices_of_adsorbates())
+                    best_particles.append(best_particle)
                     start_particle.swap_status(adsorbates_exchanges)
                     start_particle.swap_symbols(ordering_exchanges)
 
@@ -360,7 +361,8 @@ def run_monte_carlo_ordering_adsorbates(beta, max_steps, start_particle, orderin
                 best_particle = copy.deepcopy(start_particle.get_as_dictionary(fields))
                 best_particle['energies'][ordering_energy_key] = copy.deepcopy(start_energy)
                 best_particle['ads'] = copy.deepcopy(start_particle.get_indices_of_adsorbates())
+                best_particles.append(best_particle)
                 found_new_solution = False
 
     accepted_energies.append((accepted_energies[-1][0], total_steps))
-    return [best_particle, accepted_energies]
+    return [best_particle, accepted_energies, best_particles]
