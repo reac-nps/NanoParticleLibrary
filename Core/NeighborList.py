@@ -1,4 +1,5 @@
 from collections import defaultdict
+import itertools
 import copy
 
 from ase.neighborlist import natural_cutoffs
