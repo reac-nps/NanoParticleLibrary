@@ -48,6 +48,7 @@ class NeighborList:
             return 18
         if len(indices) == 3:
             return 22
+
         common_atom_indices = []
         for pair in itertools.combinations(indices, 2):
             shared_pair = list(np.intersect1d(self.get_coordination_atoms(pair[0]), self.get_coordination_atoms(pair[1])))
@@ -60,7 +61,7 @@ class NeighborList:
         coordination_atoms = []
         for atom_idx in indices:
             for neigh in self.get_coordination_atoms(atom_idx):
-                if neigh not in coordination_atoms:
+                if neigh not in coordination_atoms and neigh not in indices:
                     coordination_atoms.append(neigh)
        
         tot_cns = 0
