@@ -41,16 +41,13 @@ class NeighborList:
     def get_max_coordination_number(self, indices):
         if len(indices) == 1:
             return 12
-        indices = copy.deepcopy(indices)
-        common_atom_indices = set()
-        for atom_idx in indices:
-            indices.remove(atom_idx)
-            common_atoms = set(self.get_coordination_atoms(atom_idx))
-            for idx in indices:
-                c = common_atoms.intersection(self.get_coordination_atoms(idx))
-                common_atom_indices = common_atom_indices.union(c)
-        
-        return 12*len(indices) - len(common_atom_indices)
+
+        common_atom_indices = []
+        for pair in itertools.combinations(indices, 2):
+            shared_pair = list(np.intersect1d(self.get_coordination_atoms(pair[0]), self.get_coordination_atoms(pair[1])))
+            common_atom_indices += shared_pair    
+
+        return 12*len(indices) - len(set(common_atom_indices))
     
     def get_generalized_coordination_number(self, indices):
         max_coordination = self.get_max_coordination_number(indices)
