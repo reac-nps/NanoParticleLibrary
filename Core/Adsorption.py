@@ -95,7 +95,20 @@ class AdsorptionSiteList():
                 if triplet not in hollow_sites:
                     hollow_sites.append(triplet)
 
-        return ontop_sites + bridge_sites + hollow_sites
+
+        four_fold_hollow_sites = []
+        atoms_in_100 = set(particle.get_atom_indices_from_coordination_number([6,7,8]))
+        sub_surface = set(particle.get_atom_indices_from_coordination_number([12]))
+        four_fold_hollow_sites = []
+
+        for atom_idx in sub_surface:
+            sub_neigh = set(particle.get_coordination_atoms(atom_idx))
+            hollow_site = sub_neigh.intersection(atoms_in_100)
+            if len(hollow_site) == 4 and hollow_site not in four_fold_hollow_sites:
+                four_fold_hollow_sites.append(hollow_site)
+
+
+        return ontop_sites + bridge_sites + hollow_sites + four_fold_hollow_sites
 
 
         
@@ -141,7 +154,7 @@ class FindAdsorptionSites():
         normal_vector = -1
         pos_vec = particle.get_position(atom_idx)/ np.linalg.norm(particle.get_position(atom_idx))
         planes = [[1,1,1], [-1,1,1], [1,-1,1], [1,1,-1], [-1,-1,1], [-1,1,-1], [1,-1,-1], [-1,-1,-1]]
-        #planes += [[1,0,0], [-1,0,0], [0,1,0], [0,-1,0], [0,0,1], [0,0,-1]]
+        planes += [[1,0,0], [-1,0,0], [0,1,0], [0,-1,0], [0,0,1], [0,0,-1]]
         for plane in planes:
             mi_vec = plane / np.linalg.norm(plane)
             dot_prod = abs(np.dot(mi_vec, pos_vec))
@@ -227,14 +240,14 @@ class PlaceAddAtoms():
             xyz_atoms = [particle.get_position(atom_index) for atom_index in site]
             xyz_site_plane = math.find_middle_point(xyz_atoms)
             unit_vector1, length1 = math.get_unit_vector(xyz_site_plane)
-            if len(site) == 3:
+            if len(site) >= 3:
                 normal_vector = math.get_normal_vector(xyz_atoms) 
             if len(site) == 2:
                 cn1 = particle.get_coordination_number(site[0])
                 cn2 = particle.get_coordination_number(site[1])
                 shared_atoms = set(particle.get_coordination_atoms(site[0])).intersection(set(particle.get_coordination_atoms(site[1])))
                 corner = set(particle.get_atom_indices_from_coordination_number([4,6])).intersection(shared_atoms)
-                if cn1 < 8 and  cn2 < 8 and len(corner) == 0:    
+                if cn1 < 9 and  cn2 < 9 and len(corner) == 0:    
                     positions = [particle.get_position(x) for x in site]
                     normal_vector = math.get_bridge_perpendicular_line(positions, self.com)
                 else:    

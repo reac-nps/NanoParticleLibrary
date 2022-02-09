@@ -376,17 +376,17 @@ class BaseNanoparticle:
     def get_generalized_coordination_number(self, indices):
         return self.neighbor_list.get_generalized_coordination_number(indices)
     
-    def get_generalized_coordination_numbers(self, cn_positions):
-        indices = self.get_atom_indices_from_coordination_number(cn_positions)
-        
-        GCNs = dict()
-        for atom_idx in indices:
-            gen_cn = self.neighbor_list.get_generalized_coordination_number([atom_idx])
+    def get_generalized_coordination_numbers(self, sites):
+
+        gcn_dict = dict()
+        for site in sites:
+            gen_cn = self.get_generalized_coordination_number(site)
             try:
-                GCNs[gen_cn].append(atom_idx)
+                gcn_dict[gen_cn].append(site)
             except KeyError:
-                GCNs[gen_cn] = [atom_idx]
-        return GCNs
+                gcn_dict[gen_cn] = [site]
+        return gcn_dict
+
 
     def get_atoms_in_the_surface_plane(self, atom_idx, edges_corner=False):
         return self.neighbor_list.get_atoms_in_the_surface_plane(atom_idx, edges_corner=edges_corner)

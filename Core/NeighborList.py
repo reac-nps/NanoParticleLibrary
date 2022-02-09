@@ -48,6 +48,8 @@ class NeighborList:
             return 18
         if len(indices) == 3:
             return 22
+        if len(indices) == 4:
+            return 26
 
         common_atom_indices = []
         for pair in itertools.combinations(indices, 2):

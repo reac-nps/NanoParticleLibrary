@@ -1,5 +1,5 @@
 from ase.optimize import BFGS
-from ase.calculators.emt import EMT
+#from asap3 import EMT
 
 import numpy as np
 import copy
@@ -276,7 +276,7 @@ class LateralInteractionCalculator:
         particle = construct_adsorbate_grid(particle)
         distance_matrix = get_adsorbate_distance_matrix(particle, n_atoms_np)
         interaction_matrix = np.zeros(distance_matrix.shape)
-        interaction_matrix = self.a/distance_matrix**2
+        interaction_matrix = self.a / distance_matrix**2
 
         dimension = len(interaction_matrix)
         for i in np.arange(dimension):
