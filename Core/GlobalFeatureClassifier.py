@@ -101,39 +101,41 @@ class TopologicalFeatureClassifier(SimpleFeatureClassifier):
 
 
 
-class NearestNeighborsClusterExpansion(SimpleFeatureClassifier):
+class TopologicalEnvironmentFeatureClassifier(SimpleFeatureClassifier):
     def __init__(self, symbols):
         SimpleFeatureClassifier.__init__(self, symbols)
-        self.feature_key = 'NNCE'
-        
+        symbols_copy = copy.deepcopy(symbols)
+        symbols_copy.sort()
+        self.symbols = symbols_copy
+        self.feature_key = 'TEC'
+        self.coordination_number_offsets = [int(cn*(cn + 1)/2) for cn in range(13)]
+    
+    def compute_n_features(self, particle):
+        return 182
+    
+    def compute_atom_feature(self, atom_index, particle):
+        symbol = particle.get_symbol(atom_index)
+        symbol_index = self.symbols.index(symbol)
+
+        element_offset = symbol_index*91
+
+        coordination_number = len(particle.neighbor_list[atom_index])
+        symbols = [particle.get_symbol(neigh_index) for neigh_index in particle.neighbor_list[atom_index]] 
+        if symbol == self.symbol_a:
+            n_ab_bonds = symbols.count(self.symbol_b)
+        else:
+            n_ab_bonds = symbols.count(self.symbol_a)
+
+        atoms_feature = int(self.coordination_number_offsets[coordination_number] + n_ab_bonds + element_offset)
+
+        return atoms_feature
+
     def compute_feature_vector(self, particle):
-        
-        particle.neighbor_list.construct
-        n_atoms = particle.get_n_atoms()
-        coord_pos = [3,4,5,6,7,8,9,10,11,12]
-        desc_dict = {self.symbol_a: {cn : {top :0 for top in range(0,cn+1) } for cn in coord_pos } ,
-            self.symbol_b: {cn : {top : 0 for top in range(0,cn+1)} for cn in coord_pos }} 
+        feature_vector = np.zeros(self.compute_n_features(particle))
 
-        for index in range(n_atoms):
-            element = particle.get_symbol(index)
-            symbols = [particle.get_symbol(index) for index in particle.neighbor_list.list[index]] 
-            coord = len(symbols)
-
-            if element == self.symbol_a:
-                n_ab_bonds = symbols.count(self.symbol_b)
-            else:
-                n_ab_bonds = symbols.count(self.symbol_a)
-
-            desc_dict[element][coord][n_ab_bonds] += 1
-
-        feature_vector = []
-
-        for elements in desc_dict.keys():
-            elements = desc_dict[elements]
-            for coordination in elements.keys():
-                coordination = elements[coordination]
-                for values in coordination.values():
-                    feature_vector.append(values)
+        for atom_index in particle.get_indices():
+            atom_feature = self.compute_atom_feature(atom_index, particle)
+            feature_vector[atom_feature] += 1
 
         particle.set_feature_vector(self.feature_key, feature_vector)
 
