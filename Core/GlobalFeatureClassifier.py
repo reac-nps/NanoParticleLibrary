@@ -213,8 +213,6 @@ class AdsorptionFeatureVector(SimpleFeatureClassifier):
 
         particle.set_feature_vector(self.feature_key, feature_vector)
 
-
-
     def get_features(self, symbols):
         symbols = sorted(symbols)
         index = 0
@@ -223,5 +221,39 @@ class AdsorptionFeatureVector(SimpleFeatureClassifier):
                 self.features_type[site_type] = index
                 index += 1
         self.n_features = len(self.features_type)
+
+class GeneralizedCoordinationNumber(SimpleFeatureClassifier):
+
+    """
+    Class that only works for Monometallic Nanopaticles
+    """
+
+    def __init__(self, particle):
+
+        particle.construct_adsorption_list()
+        self.ads_list = particle.get_adsorption_as_list()
+        self.all_gcn = list(particle.get_generalized_coordination_numbers(self.ads_list).keys())
+        self.n_features = len(self.all_gcn)
+        self.gcn_site_list = np.zeros(particle.get_total_number_of_sites())
+        self.feature_key = 'GCN'
+    
+        for i, site_atom_indices in enumerate(self.ads_list):
+            self.gcn_site_list[i] = particle.get_generalized_coordination_number(site_atom_indices)
+
+    def compute_feature_vector(self, particle):
+        feature_vector = np.zeros(self.n_features)
+        occupied_site_indices = particle.get_indices_of_adsorbates()
+        print(occupied_site_indices)
+        for occupied_site_index in occupied_site_indices:
+            index = self.all_gcn.index(self.gcn_site_list[occupied_site_index])
+            feature_vector[index] += 1  
+
+        particle.set_feature_vector(self.feature_key, feature_vector)
+        
+
+
+
+
+
 
 

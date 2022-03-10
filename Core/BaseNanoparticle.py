@@ -487,6 +487,11 @@ class BaseNanoparticle:
     def get_adsorption_list(self):
         return self.adsorption_site_list
 
+    def get_adsorption_as_list(self):
+        n_sites = self.get_total_number_of_sites()
+        adsorption_site_list = [list(self.adsorption_site_list[x]) for x in range(n_sites)]
+        return adsorption_site_list
+
     def get_total_number_of_sites(self):
         return self.adsorption_site_list.get_total_number_of_sites()
 
