@@ -25,11 +25,10 @@ def run_monte_carlo(beta, max_steps, start_particle, energy_calculator, feature_
     start_energy = start_particle.get_energy(energy_key)
     lowest_energy = start_energy
     accepted_energies = [(lowest_energy, 0)]
-    accepted_structures = []
+    #accepted_structures = []
 
     found_new_solution = False
-    fields = ['energies', 'symbols', 'positions']
-    best_particle = copy.deepcopy(start_particle.get_as_dictionary(fields))
+    best_particle = copy.deepcopy(start_particle)
 
     total_steps = 0
     no_improvement = 0
@@ -53,9 +52,8 @@ def run_monte_carlo(beta, max_steps, start_particle, energy_calculator, feature_
             if found_new_solution:
                 if new_energy > start_energy:
                     start_particle.swap_symbols(exchanges)
-                    best_particle = copy.deepcopy(start_particle.get_as_dictionary(fields))
-                    accepted_structures.append(copy.deepcopy(start_particle.get_ase_atoms()))
-                    best_particle['energies'][energy_key] = start_energy
+                    best_particle = copy.deepcopy(start_particle)
+                    #accepted_structures.append(copy.deepcopy(start_particle.get_ase_atoms()))
                     start_particle.swap_symbols(exchanges)
 
             start_energy = new_energy
@@ -78,11 +76,10 @@ def run_monte_carlo(beta, max_steps, start_particle, energy_calculator, feature_
             #feature_calculator.compute_feature_vector(start_particle)
 
             if found_new_solution:
-                best_particle = copy.deepcopy(start_particle.get_as_dictionary(fields))
-                accepted_structures.append(copy.deepcopy(start_particle.get_ase_atoms()))
-                best_particle['energies'][energy_key] = copy.deepcopy(start_energy)
+                best_particle = copy.deepcopy(start_particle)
+                #accepted_structures.append(copy.deepcopy(start_particle.get_ase_atoms()))
                 found_new_solution = False
 
     accepted_energies.append((accepted_energies[-1][0], total_steps))
 
-    return [best_particle, accepted_energies, accepted_structures]
+    return [best_particle, accepted_energies]# accepted_structures]

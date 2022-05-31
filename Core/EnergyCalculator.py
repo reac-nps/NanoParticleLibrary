@@ -1,5 +1,5 @@
 from ase.optimize import BFGS
-#from asap3 import EMT
+from ase.calculators.emt import EMT
 
 import numpy as np
 import copy

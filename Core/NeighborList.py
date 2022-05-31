@@ -18,9 +18,13 @@ class NeighborList:
     def __setitem__(self, key, value):
         self.list[key] = value
 
-    def construct(self, atoms, scale_factor=1.0, npl = True):
+    def construct(self, atoms, scale_factor=1.0, npl = True, cutoffs = None):
+
+        if not cutoffs:
+            cutoffs = natural_cutoffs(atoms, mult=scale_factor)
+            
         neighbor_list = build_neighbor_list(atoms,
-                                            cutoffs=natural_cutoffs(atoms, mult=scale_factor),
+                                            cutoffs=cutoffs,
                                             bothways=True,
                                             self_interaction=False)
 
