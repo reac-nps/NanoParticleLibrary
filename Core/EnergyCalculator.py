@@ -168,6 +168,8 @@ class BayesianRRCalculator(EnergyCalculator):
         EnergyCalculator.__init__(self)
 
         self.ridge = BayesianRidge(fit_intercept=False)
+        #self.ridge = BayesianRidge(fit_intercept=True)
+        
         self.energy_key = 'BRR'
         self.feature_key = feature_key
 
@@ -203,8 +205,9 @@ class BayesianRRCalculator(EnergyCalculator):
         Parameters:
             particle : Nanoparticle
         """
+        #brr_energy = self.ridge.predict([particle.get_feature_vector(self.feature_key)])
         brr_energy = np.dot(np.transpose(self.ridge.coef_), particle.get_feature_vector(self.feature_key))
-        particle.set_energy(self.energy_key, brr_energy)
+        particle.set_energy(self.energy_key, float(brr_energy))
 
 
 class DipoleMomentCalculator:

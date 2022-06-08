@@ -77,6 +77,26 @@ class SimpleFeatureClassifier(GlobalFeatureClassifier):
 
         return n_aa_bonds, n_bb_bonds, n_ab_bonds
 
+class testTopologicalFeatureClassifier(SimpleFeatureClassifier):
+    """Classifier for a generalization of the topological descriptors by Kozlov et al. (2015).
+    Implemented for TWO elements, which are sorted alphabetically.The returned feature vector will have the form
+    [n_aa_bonds/n_atoms, n_ab_bonds/n_atoms, n_bb_bonds/n_atoms, n_a_atoms*0.1, n_a(cn=0), n_a(cn=1), ..., n_a(cn=12].
+    """
+    def __init__(self, symbols):
+        SimpleFeatureClassifier.__init__(self, symbols)
+        self.feature_key = 'TFC'
+
+    def compute_feature_vector(self, particle):
+        n_atoms = particle.get_n_atoms()
+        n_aa_bonds, n_bb_bonds, n_ab_bonds = self.compute_respective_bond_counts(particle)
+        coordinated_atoms = [len(particle.get_atom_indices_from_coordination_number([cn], symbol=self.symbol_a)) for cn in range(13)]
+
+        M = particle.get_stoichiometry()[self.symbol_a]*0.1
+
+        feature_vector = np.array([n_aa_bonds/n_atoms, n_bb_bonds/n_atoms, n_ab_bonds/n_atoms, M] + coordinated_atoms)
+        particle.set_feature_vector(self.feature_key, feature_vector)
+
+
 class TopologicalFeatureClassifier(SimpleFeatureClassifier):
     """Classifier for a generalization of the topological descriptors by Kozlov et al. (2015).
 

@@ -1,11 +1,11 @@
 from sortedcontainers import SortedKeyList
 
-
-# TODO rename, make sure variable names align with thesis
 class GuidedExchangeOperator:
     def __init__(self, environment_energies, feature_key):
         self.n_envs = int(len(environment_energies)/2)
         self.env_energy_differences = [environment_energies[i] - environment_energies[i + self.n_envs] for i in range(self.n_envs)]
+
+        self.neigh_energy_difference = [environment_energies[i+1] - environment_energies[i] for i in range((self.n_envs*2)-1)] + [0]
 
         self.feature_key = feature_key
 
@@ -24,6 +24,16 @@ class GuidedExchangeOperator:
     def guided_exchange(self, particle):
         symbol1_index = self.symbol1_indices[0]
         symbol2_index = self.symbol2_indices[0]
+
+        neigh1 = particle.get_coordination_atoms(symbol1_index)
+        neihg2 = [y for x in neigh1 for y in particle.get_coordination_atoms(x)]    
+
+        if symbol2_index in neigh1:
+            print('first')
+        if symbol2_index in neihg2:
+            print('second')
+        if symbol2_index not in neigh1 + neihg2:
+            print('nada')
 
         particle.swap_symbols([(symbol1_index, symbol2_index)])
         return symbol1_index, symbol2_index
@@ -64,13 +74,26 @@ class GuidedExchangeOperator:
         atom_features = particle.get_atom_features(self.feature_key)
         for index in symbol1_indices:
             feature = atom_features[index]
-            self.symbol1_exchange_energies[index] = -self.env_energy_differences[self.env_from_feature(feature)]
+            
+            energy_change = 0
+            for neigh_idx in particle.get_coordination_atoms(index):
+                neigh_feature = atom_features[neigh_idx]
+                energy_change -= self.neigh_energy_difference[neigh_feature-1] 
+
+            self.symbol1_exchange_energies[index] = (-self.env_energy_differences[self.env_from_feature(feature)] + energy_change)
             self.symbol1_indices.add(index)
 
         for index in symbol2_indices:
             feature = atom_features[index]
-            self.symbol2_exchange_energies[index] = +self.env_energy_differences[self.env_from_feature(feature)]
+            
+            energy_change = 0
+            for neigh_idx in particle.get_coordination_atoms(index):
+                neigh_feature = atom_features[neigh_idx]
+                energy_change += self.neigh_energy_difference[neigh_feature] 
+
+            self.symbol2_exchange_energies[index] = (+self.env_energy_differences[self.env_from_feature(feature)] + energy_change)
             self.symbol2_indices.add(index)
+
 
     def update(self, particle, indices, exchange_indices):
         symbols = sorted(particle.atoms.get_all_symbols())
@@ -81,8 +104,10 @@ class GuidedExchangeOperator:
             if index in exchange_indices:
                 if particle.get_symbol(index) == symbol1:
                     self.symbol2_indices.remove(index)
+                    #del self.symbol2_exchange_energies[index]
                 else:
                     self.symbol1_indices.remove(index)
+                    #del self.symbol1_exchange_energies[index]
             else:
                 if particle.get_symbol(index) == symbol1:
                     self.symbol1_indices.remove(index)
@@ -92,18 +117,33 @@ class GuidedExchangeOperator:
         for index in indices:
             feature = atom_features[index]
             new_exchange_energy = self.env_energy_differences[self.env_from_feature(feature)]
+            if particle.get_symbol(index) == symbol1:
+                energy_change = 0
+                for neigh_idx in particle.get_coordination_atoms(index):
+                    neigh_feature = atom_features[neigh_idx]
+                    energy_change -= self.neigh_energy_difference[neigh_feature-1]
+                #self.symbol1_exchange_energies[index] = (-self.env_energy_differences[self.env_from_feature(feature)] + energy_change)
+                #elf.symbol1_indices.add(index)
+            else:
+                energy_change = 0
+                for neigh_idx in particle.get_coordination_atoms(index):
+                    neigh_feature = atom_features[neigh_idx]
+                    energy_change += self.neigh_energy_difference[neigh_feature+1]
+                #self.symbol2_exchange_energies[index] = (+self.env_energy_differences[self.env_from_feature(feature)] + energy_change)
+                #self.symbol2_indices.add(index)
+            
             if index in exchange_indices:
                 if particle.get_symbol(index) == symbol1:
-                    self.symbol1_exchange_energies[index] = -new_exchange_energy
+                    self.symbol1_exchange_energies[index] = -new_exchange_energy + energy_change
                     del self.symbol2_exchange_energies[index]
                 else:
-                    self.symbol2_exchange_energies[index] = new_exchange_energy
+                    self.symbol2_exchange_energies[index] = new_exchange_energy + energy_change
                     del self.symbol1_exchange_energies[index]
             else:
                 if particle.get_symbol(index) == symbol1:
-                    self.symbol1_exchange_energies[index] = -new_exchange_energy
+                    self.symbol1_exchange_energies[index] = -new_exchange_energy + energy_change
                 else:
-                    self.symbol2_exchange_energies[index] = new_exchange_energy
+                    self.symbol2_exchange_energies[index] = new_exchange_energy + energy_change
 
         for index in indices:
             if particle.get_symbol(index) == symbol1:

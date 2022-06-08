@@ -1,5 +1,5 @@
 from Core.LocalEnvironmentCalculator import NeighborCountingEnvironmentCalculator
-from LocalOpt.GuidedExchangeOperator import GuidedExchangeOperator
+from LocalOpt.GarbageExchangeOperator import GuidedExchangeOperator
 from Core.LocalEnvironmentFeatureClassifier import TopologicalEnvironmentClassifier
 
 
@@ -45,7 +45,7 @@ def local_optimization(start_particle, energy_calculator, environment_energies, 
 
     step = 0
     while True:
-        step += 1
+        step += 2
         index1, index2 = exchange_operator.guided_exchange(start_particle)
         exchanged_indices = [index1, index2]
 
