@@ -27,6 +27,9 @@ def update_atomic_features(index1, index2, local_env_calculator, local_feature_c
     neighborhood = {index1, index2}
     neighborhood = neighborhood.union(particle.neighbor_list[index1])
     neighborhood = neighborhood.union(particle.neighbor_list[index2])
+    
+    for x in neighborhood:
+        neighborhood = neighborhood.union(particle.neighbor_list[x])
 
     for index in neighborhood:
         local_env_calculator.compute_local_environment(particle, index)

@@ -74,8 +74,7 @@ def run_monte_carlo(beta, max_steps, start_particle, energy_calculator, local_fe
             if found_new_solution:
                 if new_energy > start_energy:
                     start_particle.swap_symbols(exchanges)
-                    best_particle = copy.deepcopy(start_particle.get_as_dictionary(fields))
-                    best_particle['energies'][energy_key] = start_energy
+                    best_particle = copy.deepcopy(start_particle)
                     start_particle.swap_symbols(exchanges)
 
             start_energy = new_energy
@@ -100,8 +99,7 @@ def run_monte_carlo(beta, max_steps, start_particle, energy_calculator, local_fe
                 local_feature_classifier.compute_atom_feature(start_particle, index)
 
             if found_new_solution:
-                best_particle = copy.deepcopy(start_particle.get_as_dictionary(fields))
-                best_particle['energies'][energy_key] = copy.deepcopy(start_energy)
+                best_particle = copy.deepcopy(start_particle)
                 found_new_solution = False
 
     accepted_energies.append((accepted_energies[-1][0], total_steps))
