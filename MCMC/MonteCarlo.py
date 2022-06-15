@@ -6,7 +6,7 @@ from Core.LocalEnvironmentCalculator import NeighborCountingEnvironmentCalculato
 from MCMC.RandomExchangeOperator import RandomExchangeOperator
 
 
-def setup_monte_carlo(start_particle, energy_calculator, local_feature_classifier):
+def  setup_monte_carlo(start_particle, energy_calculator, local_feature_classifier):
     symbols = start_particle.get_all_symbols()
     energy_key = energy_calculator.get_energy_key()
 
@@ -53,7 +53,7 @@ def run_monte_carlo(beta, max_steps, start_particle, energy_calculator, local_fe
 
     total_steps = 0
     no_improvement = 0
-    while no_improvement < max_steps:
+    while total_steps < max_steps:
         total_steps += 1
         if total_steps % 2000 == 0:
             print("Step: {}".format(total_steps))

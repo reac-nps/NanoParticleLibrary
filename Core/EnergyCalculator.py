@@ -56,7 +56,7 @@ class EMTCalculator(EnergyCalculator):
 
         atoms.set_cell(np.array([[cell_width, 0, 0], [0, cell_length, 0], [0, 0, cell_height]]))
         atoms.set_calculator(EMT())
-        dyn = BFGS(atoms)
+        dyn = BFGS(atoms, logfile=None)
         dyn.run(fmax=self.fmax, steps=self.steps)
 
         energy = atoms.get_potential_energy()
