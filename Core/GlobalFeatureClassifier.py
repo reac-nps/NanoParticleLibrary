@@ -272,8 +272,44 @@ class GeneralizedCoordinationNumber(SimpleFeatureClassifier):
         
 
 
+class ClusterExpansionFeatureClassifier(GlobalFeatureClassifier):
+    def __init__(self, primitive_structure, cutoffs, symbols):
+        SimpleFeatureClassifier.__init__(self, symbols)
+        from icet import ClusterSpace
+
+        self.feature_key = 'CE'
+        self.primitive_structure = copy.deepcopy(primitive_structure)
+        self.ce = ClusterSpace(primitive_structure, cutoffs, symbols)
 
 
+    def compute_feature_vector(self, particle, recompute_lattice=False):
+        if recompute_lattice:
+            structure = self.get_perfect_lattice(particle)
+        
+        feature_vector = self.ce.get_cluster_vector(structure)
+        particle.set_feature_vector(self.feature_key, feature_vector)
 
+    def get_perfect_lattice(self, particle):
+        ref = copy.deepcopy(self.primitive_structure)
+        ref.translate(-ref.get_center_of_mass())
 
+        structure = particle.get_ase_atoms()
+        structure.set_positions()
+        structure.set_cell(ref.cell)
+        structure.translate(-structure.get_center_of_mass())
 
+        symbols = []
+
+        for atom_i in ref:
+            index = 0
+            distance_ref = 100
+            for atom_j in structure:
+                distance = np.linalg.norm(atom_i.position - atom_j.position)
+                if distance < distance_ref:
+                    index = atom_j.index
+                    distance_ref = distance
+
+            symbols.append(structure[index].symbol)
+
+        ref.symbols = symbols
+        return ref
