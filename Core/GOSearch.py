@@ -158,7 +158,7 @@ class GuidedSearch(GOSearch):
         self.energy_calculator = None
 
     def fit_energy_expression(self, training_set, symbols, energy_key='EMT'):
-        global_feature_classifier = GFC.TopologicalFeatureClassifier(symbols)
+        global_feature_classifier = GFC.testTopologicalFeatureClassifier(symbols)
 
         self.energy_calculator = EC.BayesianRRCalculator(global_feature_classifier.get_feature_key())
 
@@ -175,7 +175,6 @@ class GuidedSearch(GOSearch):
 
         self.energy_calculator.set_coefficients(topological_coefficients)
         self.energy_calculator.set_feature_key('TEC')
-
         return
 
     def build_args_list_for_gm_search(self, additional_args, args_start):

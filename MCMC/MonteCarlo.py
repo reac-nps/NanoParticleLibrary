@@ -4,22 +4,18 @@ from itertools import chain
 
 from Core.LocalEnvironmentCalculator import NeighborCountingEnvironmentCalculator
 from MCMC.RandomExchangeOperator import RandomExchangeOperator
-from Core.GlobalFeatureClassifier import DipoleMomentCalculator
 
 import time
 
-def  setup_monte_carlo(start_particle, energy_calculator, local_feature_classifier):
+def setup_monte_carlo(start_particle, energy_calculator, local_feature_classifier):
     symbols = start_particle.get_all_symbols()
     energy_key = energy_calculator.get_energy_key()
 
-    dip = DipoleMomentCalculator(['Pd', 'Zn'])
-    dip.compute_feature_vector(start_particle)
 
     local_env_calculator = NeighborCountingEnvironmentCalculator(symbols)
     local_env_calculator.compute_local_environments(start_particle)
 
     local_feature_classifier.compute_feature_vector(start_particle)
-    start_particle.feature_vectors['TEC'] = np.append(start_particle.feature_vectors['TEC'], start_particle.feature_vectors['MU'])
     energy_calculator.compute_energy(start_particle)
 
     exchange_operator = RandomExchangeOperator(0.5)
@@ -49,7 +45,6 @@ def run_monte_carlo(beta, max_steps, start_particle, energy_calculator, local_fe
     energy_key, local_env_calculator, exchange_operator = setup_monte_carlo(start_particle, energy_calculator,
                                                                             local_feature_classifier)
 
-    dip = DipoleMomentCalculator(['Pd', 'Zn'])
     start_energy = start_particle.get_energy(energy_key)
     lowest_energy = start_energy
     accepted_energies = [(lowest_energy, 0)]
@@ -61,7 +56,7 @@ def run_monte_carlo(beta, max_steps, start_particle, energy_calculator, local_fe
     total_steps = 0
     no_improvement = 0
 
-    while total_steps < max_steps:
+    while no_improvement < max_steps:
         total_steps += 1
         if total_steps % 2000 == 0:
             print("Step: {}".format(total_steps))
@@ -73,8 +68,6 @@ def run_monte_carlo(beta, max_steps, start_particle, energy_calculator, local_fe
         start_particle, neighborhood = update_atomic_features(exchanges, local_env_calculator, local_feature_classifier,
                                                               start_particle)
 
-        dip.compute_feature_vector(start_particle)
-        start_particle.feature_vectors['TEC'] = np.append(start_particle.feature_vectors['TEC'], start_particle.feature_vectors['MU'])
         
         energy_calculator.compute_energy(start_particle)
         new_energy = start_particle.get_energy(energy_key)

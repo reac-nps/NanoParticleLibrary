@@ -3,9 +3,6 @@ from LocalOpt.GarbageExchangeOperator import GuidedExchangeOperator
 from Core.LocalEnvironmentFeatureClassifier import TopologicalEnvironmentClassifier
 
 import numpy as np
-from Core.GlobalFeatureClassifier import DipoleMomentCalculator
-
-dip = DipoleMomentCalculator(['Pd', 'Zn'])
 
 def setup_local_optimization(start_particle, energy_calculator, environment_energies, local_feature_classifier=None):
     symbols = start_particle.get_all_symbols()
@@ -15,8 +12,6 @@ def setup_local_optimization(start_particle, energy_calculator, environment_ener
 
     local_env_calculator.compute_local_environments(start_particle)
     local_feature_classifier.compute_feature_vector(start_particle)
-    dip.compute_feature_vector(start_particle)
-    start_particle.feature_vectors['TEC'] = np.append(start_particle.feature_vectors['TEC'], start_particle.feature_vectors['MU'])
 
     feature_key = local_feature_classifier.get_feature_key()
     energy_calculator.compute_energy(start_particle)
@@ -43,9 +38,6 @@ def update_atomic_features(index1, index2, local_env_calculator, local_feature_c
 
     local_feature_classifier.compute_feature_vector(particle, recompute_atom_features=False)
 
-    dip.compute_feature_vector(particle)
-    particle.feature_vectors['TEC'] = np.append(particle.feature_vectors['TEC'], particle.feature_vectors['MU'])
-    
     return particle, neighborhood
 
 
