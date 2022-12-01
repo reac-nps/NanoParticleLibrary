@@ -31,7 +31,7 @@ class BaseNanoparticle:
         self.adsorption_site_list = AdsorptionSiteList()
 
         self.energies = dict()
-
+        
         self.local_environments = dict()
         self.atom_features = dict()
         self.feature_vectors = dict()
@@ -456,6 +456,9 @@ class BaseNanoparticle:
 
     def set_atom_feature(self, feature_key, index, atom_feature):
         self.atom_features[feature_key][index] = atom_feature
+
+    def get_atom_feature(self, feature_key, index):
+        return self.atom_features[feature_key][index]
 
     def get_atom_features(self, feature_key):
         if feature_key not in self.atom_features:

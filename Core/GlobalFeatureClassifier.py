@@ -1,8 +1,9 @@
 from collections import defaultdict
 import numpy as np
-import itertools
+from itertools import combinations_with_replacement
 import copy
 
+from ase.data import atomic_numbers
 
 class GlobalFeatureClassifier:
     """Base class for classifiers that produce a feature vector directly from a particle without the need
@@ -97,6 +98,106 @@ class testTopologicalFeatureClassifier(SimpleFeatureClassifier):
         particle.set_feature_vector(self.feature_key, feature_vector)
 
 
+class ExtendedTopologicalFeaturesClassifier(GlobalFeatureClassifier):
+    """
+    Extention of the Topological Feature Classifier Class.
+    Computes the topological feature vector for more than 2 metals in the nanoparticle
+    """
+    def __init__(self, symbols):
+        GlobalFeatureClassifier.__init__(self)
+        symbols_copy = copy.deepcopy(symbols)
+        self.symbols = sorted(symbols_copy)
+        self.number_of_species = len(self.symbols)
+
+        self.bond_types = dict()
+        self.n_bond_features = 0
+        self.n_features = 0
+
+        self.feature_key = 'ETOP'
+
+        self.get_bond_types()
+        self.get_number_of_feature()
+        
+
+    def get_bond_types(self):
+
+        for i, bond_types in enumerate(combinations_with_replacement(self.symbols, 2)):
+            self.bond_types[bond_types] = i
+
+        self.n_bond_features = len(self.bond_types)
+
+    def get_number_of_feature(self):
+
+        self.n_features = self.n_bond_features + 13*self.number_of_species
+
+    def get_coordination_index(self,particle,index):
+
+        symbol = particle.get_symbol(index)
+        coordination = particle.get_coordination_number(index)
+        cn_index = self.n_bond_features + (coordination) + (13*self.symbols.index(symbol))
+
+        return cn_index
+
+
+    def compute_atom_feature(self, particle, index):
+
+        atom_feature = np.zeros(self.n_features)
+        cn_index = self.get_coordination_index(particle, index)
+        element1 = particle.get_symbol(index)
+
+        for neigh_index in particle.neighbor_list[index]:
+            element2 = particle.get_symbol(neigh_index)
+            bond_type = sorted([element1,element2])
+            index_feature = self.bond_types[tuple(bond_type)]
+            atom_feature[index_feature] += 0.5
+
+        atom_feature[cn_index] += 1
+        
+        return atom_feature
+      
+    def compute_atom_features(self, particle):
+
+        particle.set_atom_features(np.zeros((particle.get_n_atoms(),self.n_features)), self.feature_key) 
+
+        for atom_idx in particle.get_indices():
+            atom_feature = self.compute_atom_feature(particle, atom_idx)
+            particle.set_atom_feature(self.feature_key, atom_idx, atom_feature)
+
+
+    def compute_feature_vector(self, particle):
+
+        self.compute_atom_features(particle)
+        atom_features = particle.get_atom_features(self.feature_key)
+        feature_vector = atom_features.sum(axis=0)
+        particle.set_feature_vector(self.feature_key, feature_vector)
+    
+    def update_atom_feature(self, particle, index):
+        
+        atom_feature = self.compute_atom_feature(particle, index)
+        particle.set_atom_feature(self.feature_key, index, atom_feature)
+
+
+    def update_feature_vector(self, particle, neighborhood):
+
+        old_atom_features = []
+        
+        for index in neighborhood:
+            old_atom_features.append(copy.deepcopy(particle.get_atom_feature(self.feature_key, index)))
+            self.update_atom_feature(particle,index)
+            
+        update_feature_vector = particle.get_atom_features(self.feature_key).sum(axis=0)
+        particle.set_feature_vector(self.feature_key, update_feature_vector)
+
+        return old_atom_features
+
+    def downgrade_feature_vector(self, particle, neighborhood, old_atom_features):
+        
+        for index, atom_feature in zip(neighborhood, old_atom_features):
+            particle.set_atom_feature(self.feature_key, index, atom_feature)
+
+        
+
+
 class TopologicalFeatureClassifier(SimpleFeatureClassifier):
     """Classifier for a generalization of the topological descriptors by Kozlov et al. (2015).
 
@@ -142,9 +243,9 @@ class TopologicalEnvironmentFeatureClassifier(SimpleFeatureClassifier):
         coordination_number = len(particle.neighbor_list[atom_index])
         symbols = [particle.get_symbol(neigh_index) for neigh_index in particle.neighbor_list[atom_index]] 
         if symbol == self.symbol_a:
-            n_ab_bonds = symbols.count(self.symbol_b)
+            n_ab_bonds = symbols.count(self.symbol_a) # it was symbol_b
         else:
-            n_ab_bonds = symbols.count(self.symbol_a)
+            n_ab_bonds = symbols.count(self.symbol_a) # it was symbol_a
 
         atoms_feature = int(self.coordination_number_offsets[coordination_number] + n_ab_bonds + element_offset)
 
@@ -271,45 +372,63 @@ class GeneralizedCoordinationNumber(SimpleFeatureClassifier):
         particle.set_feature_vector(self.feature_key, feature_vector)
         
 
+class LayererTopologicalDescriptors(SimpleFeatureClassifier):
+    
 
-class ClusterExpansionFeatureClassifier(GlobalFeatureClassifier):
-    def __init__(self, primitive_structure, cutoffs, symbols):
+    def __init__(self, symbols, particle):
         SimpleFeatureClassifier.__init__(self, symbols)
-        from icet import ClusterSpace
+        self.feature_key = 'LTOP'       
+        self.top =  TopologicalFeatureClassifier(symbols)
+        self.layers = self.get_layer_indices(particle)
+        self.n1, self.n2 = atomic_numbers[symbols[0]], atomic_numbers[symbols[1]]
+    
+    def compute_layers(self, particle):
+        positions = particle.get_positions()
+        x_layer, y_layer, z_layer = [np.unique(particle.positions[:,coord]) for coord in range(3)]
+        return x_layer, y_layer, z_layer
 
-        self.feature_key = 'CE'
-        self.primitive_structure = copy.deepcopy(primitive_structure)
-        self.ce = ClusterSpace(primitive_structure, cutoffs, symbols)
+    def get_layer_indices(self, particle):
+        positions = particle.get_positions()
+        x_layer, y_layer, z_layer = self.compute_layers(particle)
 
+        x_layer_indices = {x : np.where(positions[:,0] == x)[0] for x in x_layer}
+        y_layer_indices = {y : np.where(positions[:,1] == y)[0] for y in y_layer}
+        z_layer_indices = {z : np.where(positions[:,2] == z)[0] for z in z_layer}
 
-    def compute_feature_vector(self, particle, recompute_lattice=False):
-        if recompute_lattice:
-            structure = self.get_perfect_lattice(particle)
+        return x_layer_indices, y_layer_indices, z_layer_indices
+
+    def get_layers_occupacy(self, particle):
+        x_layer_indices, y_layer_indices, z_layer_indices = self.layers
+
+        layers_occupacy_x = 0
+        layers_occupacy_y = 0
+        layers_occupacy_z = 0
+
+        for layer in x_layer_indices.values():
+            n_a = np.where(particle.atoms.atoms.numbers[layer]==self.n1)[0]
+            n_b = np.where(particle.atoms.atoms.numbers[layer]==self.n2)[0]
+            layers_occupacy_x += abs(len(n_a) - len(n_b))
+
+        for layer in y_layer_indices.values():
+            n_a = np.where(particle.atoms.atoms.numbers[layer]==self.n1)[0]
+            n_b = np.where(particle.atoms.atoms.numbers[layer]==self.n2)[0]
+            layers_occupacy_y += abs(len(n_a) - len(n_b))
+
+        for layer in z_layer_indices.values():
+            n_a = np.where(particle.atoms.atoms.numbers[layer]==self.n1)[0]
+            n_b = np.where(particle.atoms.atoms.numbers[layer]==self.n2)[0]
+            layers_occupacy_z += abs(len(n_a) - len(n_b))
+
+        return np.array([layers_occupacy_x, layers_occupacy_y, layers_occupacy_z])
+        #return np.array([layers_occupacy_x, layers_occupacy_x, layers_occupacy_x])
         
-        feature_vector = self.ce.get_cluster_vector(structure)
+
+    def compute_feature_vector(self, particle):
+        self.top.compute_feature_vector(particle)
+        layericity = np.array(self.get_layers_occupacy(particle))
+        
+        feature_vector = np.empty(32) # it should be 32
+        feature_vector[:29] = particle.get_feature_vector(self.top.get_feature_key())
+        feature_vector[29:] = layericity
+
         particle.set_feature_vector(self.feature_key, feature_vector)
-
-    def get_perfect_lattice(self, particle):
-        ref = copy.deepcopy(self.primitive_structure)
-        ref.translate(-ref.get_center_of_mass())
-
-        structure = particle.get_ase_atoms()
-        structure.set_positions()
-        structure.set_cell(ref.cell)
-        structure.translate(-structure.get_center_of_mass())
-
-        symbols = []
-
-        for atom_i in ref:
-            index = 0
-            distance_ref = 100
-            for atom_j in structure:
-                distance = np.linalg.norm(atom_i.position - atom_j.position)
-                if distance < distance_ref:
-                    index = atom_j.index
-                    distance_ref = distance
-
-            symbols.append(structure[index].symbol)
-
-        ref.symbols = symbols
-        return ref

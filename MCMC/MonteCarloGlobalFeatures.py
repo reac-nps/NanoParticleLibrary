@@ -9,7 +9,7 @@ def setup_monte_carlo(start_particle, energy_calculator, feature_classifier):
     symbols = start_particle.get_all_symbols()
     energy_key = energy_calculator.get_energy_key()
 
-    feature_calculator = feature_classifier(symbols)
+    feature_calculator = feature_classifier # check this
 
     feature_calculator.compute_feature_vector(start_particle)
     energy_calculator.compute_energy(start_particle)
