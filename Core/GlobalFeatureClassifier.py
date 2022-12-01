@@ -108,11 +108,9 @@ class ExtendedTopologicalFeaturesClassifier(GlobalFeatureClassifier):
         symbols_copy = copy.deepcopy(symbols)
         self.symbols = sorted(symbols_copy)
         self.number_of_species = len(self.symbols)
-
         self.bond_types = dict()
         self.n_bond_features = 0
         self.n_features = 0
-
         self.feature_key = 'ETOP'
 
         self.get_bond_types()
@@ -123,27 +121,25 @@ class ExtendedTopologicalFeaturesClassifier(GlobalFeatureClassifier):
 
         for i, bond_types in enumerate(combinations_with_replacement(self.symbols, 2)):
             self.bond_types[bond_types] = i
-
         self.n_bond_features = len(self.bond_types)
 
     def get_number_of_feature(self):
 
         self.n_features = self.n_bond_features + 13*self.number_of_species
 
-    def get_coordination_index(self,particle,index):
+    def get_coordination_index(self,particle,index, symbol):
 
-        symbol = particle.get_symbol(index)
         coordination = particle.get_coordination_number(index)
         cn_index = self.n_bond_features + (coordination) + (13*self.symbols.index(symbol))
 
         return cn_index
 
-
+    
     def compute_atom_feature(self, particle, index):
 
         atom_feature = np.zeros(self.n_features)
-        cn_index = self.get_coordination_index(particle, index)
         element1 = particle.get_symbol(index)
+        cn_index = self.get_coordination_index(particle, index, element1)
 
         for neigh_index in particle.neighbor_list[index]:
             element2 = particle.get_symbol(neigh_index)
@@ -154,11 +150,12 @@ class ExtendedTopologicalFeaturesClassifier(GlobalFeatureClassifier):
         atom_feature[cn_index] += 1
         
         return atom_feature
-      
+
+
+
     def compute_atom_features(self, particle):
 
         particle.set_atom_features(np.zeros((particle.get_n_atoms(),self.n_features)), self.feature_key) 
-
         for atom_idx in particle.get_indices():
             atom_feature = self.compute_atom_feature(particle, atom_idx)
             particle.set_atom_feature(self.feature_key, atom_idx, atom_feature)
@@ -176,24 +173,31 @@ class ExtendedTopologicalFeaturesClassifier(GlobalFeatureClassifier):
         atom_feature = self.compute_atom_feature(particle, index)
         particle.set_atom_feature(self.feature_key, index, atom_feature)
 
-
     def update_feature_vector(self, particle, neighborhood):
 
         old_atom_features = []
+        feature_vector = particle.get_feature_vector(self.feature_key)
         
+        change = 0
         for index in neighborhood:
-            old_atom_features.append(copy.deepcopy(particle.get_atom_feature(self.feature_key, index)))
-            self.update_atom_feature(particle,index)
-            
-        update_feature_vector = particle.get_atom_features(self.feature_key).sum(axis=0)
-        particle.set_feature_vector(self.feature_key, update_feature_vector)
+            old_atom_feature = copy.deepcopy(particle.get_atom_feature(self.feature_key, index))
+            old_atom_features.append(old_atom_feature)
+            change -= old_atom_feature
 
-        return old_atom_features
+            new_atom_feature = self.compute_atom_feature(particle, index)
+            change += new_atom_feature
+            particle.set_atom_feature(self.feature_key, index, new_atom_feature)
 
-    def downgrade_feature_vector(self, particle, neighborhood, old_atom_features):
+        feature_vector += change
+
+        return old_atom_features, change
+
+    def downgrade_feature_vector(self, particle, neighborhood, old_atom_features, change):
+        feature_vector = particle.get_feature_vector(self.feature_key)
         
         for index, atom_feature in zip(neighborhood, old_atom_features):
             particle.set_atom_feature(self.feature_key, index, atom_feature)
+        feature_vector -= change
 
         
 
