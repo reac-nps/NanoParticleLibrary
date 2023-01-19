@@ -109,36 +109,49 @@ class ExtendedTopologicalFeaturesClassifier(GlobalFeatureClassifier):
         self.symbols = sorted(symbols_copy)
         self.number_of_species = len(self.symbols)
         self.bond_types = dict()
+        self.layer_types = dict()
+        self.n_sublayers = len(self.symbols)
         self.n_bond_features = 0
         self.n_features = 0
+        self.sublayer_indices = []
         self.feature_key = 'ETOP'
 
         self.get_bond_types()
+        self.get_layer_types()
         self.get_number_of_feature()
         
 
     def get_bond_types(self):
-
         for i, bond_types in enumerate(combinations_with_replacement(self.symbols, 2)):
             self.bond_types[bond_types] = i
         self.n_bond_features = len(self.bond_types)
 
-    def get_number_of_feature(self):
+    def get_layer_types(self):
+        for idx, symbol in enumerate(self.symbols):
+            self.layer_types[symbol] = idx + len(self.bond_types)
 
-        self.n_features = self.n_bond_features + 13*self.number_of_species
+    def get_number_of_feature(self):
+        self.n_features = self.n_bond_features + self.n_sublayers + 13*self.number_of_species
 
     def get_coordination_index(self,particle,index, symbol):
-
         coordination = particle.get_coordination_number(index)
-        cn_index = self.n_bond_features + (coordination) + (13*self.symbols.index(symbol))
-
+        cn_index = self.n_bond_features + self.n_sublayers + (coordination) + (13*self.symbols.index(symbol))
         return cn_index
 
-    
+    def get_sublayer_indices(self, partile):
+        self.sublayer_indices = np.zeros(partile.get_n_atoms())
+        for index in partile.get_indices():
+            if len(partile.neighbor_list[index]) < 12:
+                for sub_index in partile.neighbor_list[index]:
+                    if len(partile.neighbor_list[sub_index]) == 12:
+                        self.sublayer_indices[sub_index] = 1
+        
+
     def compute_atom_feature(self, particle, index):
 
         atom_feature = np.zeros(self.n_features)
         element1 = particle.get_symbol(index)
+        atom_feature[self.layer_types[element1]] = self.sublayer_indices[index]
         cn_index = self.get_coordination_index(particle, index, element1)
 
         for neigh_index in particle.neighbor_list[index]:
@@ -154,7 +167,7 @@ class ExtendedTopologicalFeaturesClassifier(GlobalFeatureClassifier):
 
 
     def compute_atom_features(self, particle):
-
+        self.get_sublayer_indices(particle)
         particle.set_atom_features(np.zeros((particle.get_n_atoms(),self.n_features)), self.feature_key) 
         for atom_idx in particle.get_indices():
             atom_feature = self.compute_atom_feature(particle, atom_idx)
