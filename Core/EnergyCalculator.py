@@ -30,13 +30,14 @@ class EnergyCalculator:
 class EMTCalculator(EnergyCalculator):
     """Wrapper class around the asap3 EMT calculator."""
 
-    def __init__(self, fmax=0.01, steps=20):
+    def __init__(self, fmax=0.01, steps=20, relax_atoms=False):
         EnergyCalculator.__init__(self)
         self.fmax = fmax
         self.steps = steps
         self.energy_key = 'EMT'
+        self.relax_atoms = relax_atoms
 
-    def compute_energy(self, particle, relax_atoms=False):
+    def compute_energy(self, particle):
         """Compute the energy using EMT.
 
         BFGS is used for relaxation. By default, the atoms are NOT relaxed, i.e. the
@@ -51,7 +52,7 @@ class EMTCalculator(EnergyCalculator):
         cell_length = 1e3
 
         atoms = particle.get_ase_atoms(exclude_x=True)
-        if not relax_atoms:
+        if not self.relax_atoms:
             atoms = atoms.copy()
 
         #atoms.set_cell(np.array([[cell_width, 0, 0], [0, cell_length, 0], [0, 0, cell_height]]))
