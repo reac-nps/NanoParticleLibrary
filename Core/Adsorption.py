@@ -84,7 +84,8 @@ class AdsorptionSiteList():
             for nearest_neighbor in atoms_in_surface.intersection(central_atom_nearest_neighbors):
                 pair = sorted([central_atom_index, nearest_neighbor])
                 if pair not in bridge_sites:
-                    bridge_sites.append(pair)
+                    if len(pair) == 2:
+                        bridge_sites.append(pair)
 
         hollow_sites = []
         for pair in bridge_sites:
@@ -93,7 +94,8 @@ class AdsorptionSiteList():
                 triplet.append(third_atom)
                 triplet = sorted(triplet)
                 if triplet not in hollow_sites:
-                    hollow_sites.append(triplet)
+                    if len(triplet) == 3:
+                        hollow_sites.append(triplet)
 
 
         four_fold_hollow_sites = []
@@ -266,13 +268,18 @@ class PlaceAddAtoms():
    
             return xyz_site
 
-    def place_add_atom(self, particle, add_atom_symbol, sites):
+    def place_add_atom(self, particle, adsorbates, sites):
         add_atom_list = []
         for site in sites:
             xyz_site = self.get_xyz_site_from_atom_indices(particle, site)
-            add_atom = Atoms(add_atom_symbol)   
-            add_atom.translate(xyz_site)
-            add_atom_list.append(add_atom)
+
+            for adsorbate in adsorbates:
+                add_atom = Atoms(adsorbate)   
+                add_atom.translate(xyz_site)
+                add_atom_list.append(add_atom)
+
+                unit_vector1, length1 = math.get_unit_vector(xyz_site)
+                xyz_site = (unit_vector1*(length1+1.18))
             
         for add_atom in add_atom_list:
             particle.add_atoms(add_atom, recompute_neighbor_list=False)

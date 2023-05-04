@@ -10,7 +10,6 @@ from ase import Atoms
 class Nanoparticle(BaseNanoparticle):
     def __init__(self):
         BaseNanoparticle.__init__(self)
-
         self.adsorption = FindAdsorptionSites()
 
     def truncated_octahedron(self, height, cutoff, stoichiometry, lattice_constant=3.9, alloy=False):

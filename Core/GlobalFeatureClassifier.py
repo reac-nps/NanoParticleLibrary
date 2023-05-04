@@ -1,9 +1,11 @@
-from collections import defaultdict
-import numpy as np
-from itertools import combinations_with_replacement
 import copy
+import itertools
+from collections import defaultdict
+from itertools import combinations_with_replacement
 
+import numpy as np
 from ase.data import atomic_numbers
+
 
 class GlobalFeatureClassifier:
     """Base class for classifiers that produce a feature vector directly from a particle without the need
@@ -138,12 +140,12 @@ class ExtendedTopologicalFeaturesClassifier(GlobalFeatureClassifier):
         cn_index = self.n_bond_features + self.n_sublayers + (coordination) + (13*self.symbols.index(symbol))
         return cn_index
 
-    def get_sublayer_indices(self, partile):
-        self.sublayer_indices = np.zeros(partile.get_n_atoms())
-        for index in partile.get_indices():
-            if len(partile.neighbor_list[index]) < 12:
-                for sub_index in partile.neighbor_list[index]:
-                    if len(partile.neighbor_list[sub_index]) == 12:
+    def get_sublayer_indices(self, particle):
+        self.sublayer_indices = np.zeros(particle.get_n_atoms())
+        for index in particle.get_indices():
+            if len(particle.neighbor_list[index]) < 12:
+                for sub_index in particle.neighbor_list[index]:
+                    if len(particle.neighbor_list[sub_index]) == 12:
                         self.sublayer_indices[sub_index] = 1
         
 
@@ -354,7 +356,7 @@ class AdsorptionFeatureVector(SimpleFeatureClassifier):
     def get_features(self, symbols):
         symbols = sorted(symbols)
         index = 0
-        for number_of_atom_in_site in range(1,4):
+        for number_of_atom_in_site in range(1,5):
             for site_type in itertools.combinations_with_replacement(symbols,number_of_atom_in_site):
                 self.features_type[site_type] = index
                 index += 1
