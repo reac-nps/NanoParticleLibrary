@@ -219,6 +219,7 @@ class PlaceAddAtoms():
 
     def get_xyz_site_from_atom_indices(self, particle, site):
         #if isinstance(site, (np.ndarray, np.generic)) or isinstance(site, int):
+        site = list(site)
         if len(site) == 1:
             pos_vec = particle.get_position(site[0])
             cn = particle.get_coordination_number(site[0])
