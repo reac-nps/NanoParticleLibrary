@@ -3,6 +3,7 @@ from ase.calculators.emt import EMT
 
 import numpy as np
 import copy
+import pickle
 import sklearn.gaussian_process as gp
 from sklearn.linear_model import BayesianRidge
 
@@ -25,6 +26,15 @@ class EnergyCalculator:
 
     def set_energy_key(self, energy_key):
         self.energy_key = energy_key
+
+    def save(self, name_file : str):
+        with open(name_file, 'wb') as out:
+            pickle.dump(self, out)
+
+    @staticmethod
+    def read(name_file):
+        with open(name_file, 'rb') as calc:
+            return pickle.load(calc)
 
 
 class EMTCalculator(EnergyCalculator):
