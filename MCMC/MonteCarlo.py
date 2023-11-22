@@ -74,7 +74,6 @@ def run_monte_carlo(beta, max_steps, start_particle, energy_calculator, local_fe
 
         delta_e = new_energy - start_energy
 
-        t0 = time.time()
         acceptance_rate = min(1, np.exp(-beta * delta_e))
         if np.random.random() < acceptance_rate:
             if found_new_solution:
@@ -82,8 +81,6 @@ def run_monte_carlo(beta, max_steps, start_particle, energy_calculator, local_fe
                     start_particle.swap_symbols(exchanges)
                     best_particle = copy.deepcopy(start_particle)
                     start_particle.swap_symbols(exchanges)
-                    t1 = time.time()
-                    print('accepted', t1-t0)
 
             start_energy = new_energy
             accepted_energies.append((new_energy, total_steps))

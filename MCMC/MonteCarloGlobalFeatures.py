@@ -73,7 +73,7 @@ def run_monte_carlo(beta, max_steps, start_particle, energy_calculator, feature_
             # roll back exchanges and make sure features and environments are up-to-date
             start_particle.swap_symbols(exchanges)
             start_particle.set_energy(energy_key, start_energy)
-            #feature_calculator.compute_feature_vector(start_particle)
+            feature_calculator.compute_feature_vector(start_particle)
 
             if found_new_solution:
                 best_particle = copy.deepcopy(start_particle)
@@ -82,4 +82,4 @@ def run_monte_carlo(beta, max_steps, start_particle, energy_calculator, feature_
 
     accepted_energies.append((accepted_energies[-1][0], total_steps))
 
-    return [best_particle, accepted_energies]# accepted_structures]
+    return best_particle, accepted_energies# accepted_structures]

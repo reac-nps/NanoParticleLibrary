@@ -50,7 +50,7 @@ class MCSearch(GOSearch):
         self.energy_calculator = None
         self.local_feature_classifier = None
 
-    def fit_energy_expression(self, training_set, symbols):
+    def fit_energy_expression(self, training_set, symbols, energy_key = 'EMT'):
         local_env_calculator = LEC.NeighborCountingEnvironmentCalculator(symbols)
         global_feature_classifier = GFC.TopologicalFeatureClassifier(symbols)
 
@@ -60,7 +60,7 @@ class MCSearch(GOSearch):
         for p in training_set:
             global_feature_classifier.compute_feature_vector(p)
 
-        self.energy_calculator.fit(training_set, 'EMT')
+        self.energy_calculator.fit(training_set, energy_key)
 
         n_atoms = sum(list(training_set[0].get_stoichiometry().values()))
         lin_coef = self.energy_calculator.get_coefficients()
