@@ -12,6 +12,7 @@ def get_reference_structure(particle: Nanoparticle, ase = None) -> Nanoparticle:
     particle.transform_atoms(particle.get_indices(), new_symbols)
     EMTCalculator(relax_atoms=True).compute_energy(particle)
     particle.transform_atoms(particle.get_indices(), old_symbols)
+    particle.construct_neighbor_list()
     if ase:
         return particle.get_ase_atoms()
     return particle

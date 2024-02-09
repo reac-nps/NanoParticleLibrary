@@ -54,7 +54,7 @@ class EnergyCalculator:
 class EMTCalculator(EnergyCalculator):
     """Wrapper class around the asap3 EMT calculator."""
 
-    def __init__(self, fmax=0.01, steps=20, relax_atoms=False):
+    def __init__(self, fmax=0.01, steps=50, relax_atoms=False):
         EnergyCalculator.__init__(self)
         self.fmax = fmax
         self.steps = steps
