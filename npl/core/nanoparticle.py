@@ -1,9 +1,9 @@
 import numpy as np
 
-from Core.BaseNanoparticle import BaseNanoparticle
-from Core.Adsorption import FindAdsorptionSites
+from npl.core.base_nanoparticle import BaseNanoparticle
+from npl.core.adsorption import FindAdsorptionSites
 
-from ase.cluster import Octahedron
+from ase.cluster.octahedron import Octahedron
 from ase import Atoms
 
 

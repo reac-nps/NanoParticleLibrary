@@ -19,7 +19,7 @@ class AdsorptionSiteList():
     def __getitem__(self, item):
         return self.list[item]
 
-    def __setitem__(self, key, vfind_direction_for_edgesalue):
+    def __setitem__(self, key, value):
         self.list[key] = value
 
     def construct(self, particle):

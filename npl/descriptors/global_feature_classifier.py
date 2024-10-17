@@ -32,8 +32,17 @@ class SimpleFeatureClassifier(GlobalFeatureClassifier):
     """Base class for classifiers which provides handling of two elements and calculation of bond counts.
 
     Entries for different elements in feature vectors have to be ordered consistently. This class uses an
-     alphabetical ordering of TWO elements. The returned feature vector consists of [n_aa_bonds/n_atoms,
-     n_ab_bonds/n_atoms, n_bb_bonds/n_atoms, n_a_atoms*0.1].
+    alphabetical ordering of TWO elements. The returned feature vector consists of [n_aa_bonds/n_atoms,
+    n_ab_bonds/n_atoms, n_bb_bonds/n_atoms, n_a_atoms*0.1].
+
+    Args:
+        symbols (list): A list of symbols representing the elements.
+
+    Attributes:
+        symbol_a (str): The first symbol in the ordered list of symbols.
+        symbol_b (str): The second symbol in the ordered list of symbols.
+        feature_key (str): The key used to store the feature vector in the particle object.
+
     """
     def __init__(self, symbols):
         GlobalFeatureClassifier.__init__(self)
@@ -47,6 +56,12 @@ class SimpleFeatureClassifier(GlobalFeatureClassifier):
         return
 
     def compute_feature_vector(self, particle):
+        """Compute the feature vector for the given particle.
+
+        Args:
+            particle (Particle): The particle object for which to compute the feature vector.
+
+        """
         n_aa_bonds, n_bb_bonds, n_ab_bonds = self.compute_respective_bond_counts(particle)
         n_atoms = particle.atoms.get_n_atoms()
 
@@ -54,6 +69,15 @@ class SimpleFeatureClassifier(GlobalFeatureClassifier):
         particle.set_feature_vector(self.feature_key, np.array([n_aa_bonds / n_atoms, n_bb_bonds / n_atoms, n_ab_bonds / n_atoms, M]))
 
     def compute_respective_bond_counts(self, particle):
+        """Compute the respective bond counts for the given particle.
+
+        Args:
+            particle (Particle): The particle object for which to compute the bond counts.
+
+        Returns:
+            tuple: A tuple containing the counts of AA bonds, BB bonds, and AB bonds.
+
+        """
         n_aa_bonds = 0
         n_ab_bonds = 0
         n_bb_bonds = 0

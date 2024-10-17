@@ -1,9 +1,9 @@
+from ase import Atoms
+from ase.io import read, write
 import pickle
-
-from Core.AtomWrapper import AtomWrapper
-from Core.NeighborList import NeighborList
-from Core.Adsorption import AdsorptionSiteList
-
+from npl.core.atom_wrapper import AtomWrapper
+from npl.core.neighbor_list import NeighborList
+from npl.core.adsorption import AdsorptionSiteList
 from ase import Atoms
 from ase.io import read, write
 
