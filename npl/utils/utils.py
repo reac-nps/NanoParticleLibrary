@@ -1,5 +1,5 @@
-from Core.Nanoparticle import Nanoparticle
-from Core.EnergyCalculator import EMTCalculator
+from npl.core.nanoparticle import Nanoparticle
+from npl.calculators import EMTCalculator
 from copy import deepcopy
 
 def get_reference_structure(particle: Nanoparticle, ase = None) -> Nanoparticle:

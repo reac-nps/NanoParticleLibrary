@@ -265,12 +265,12 @@ class TopologicalFeatureClassifier(SimpleFeatureClassifier):
         particle.set_feature_vector(self.feature_key, feature_vector)
 
 
-class MetalAtomicCoordinationEnvironment(SimpleFeatureClassifier):
+class AtomicCoordinationTypes(SimpleFeatureClassifier):
     def __init__(self, symbols):
         SimpleFeatureClassifier.__init__(self, symbols)
         symbols_copy = copy.deepcopy(symbols)
         self.symbols = sorted(symbols_copy)
-        self.feature_key = 'ACE'
+        self.feature_key = 'ACT'
         
         self.coordination_number_offsets = [int(cn*(cn + 1)/2) for cn in range(13)]
     

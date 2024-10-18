@@ -6,8 +6,6 @@ from LocalOpt.GarbageExchangeOperator import GuidedExchangeOperator
 import copy
 import time
 
-
-
 def run_basin_hopping(start_particle, energy_calculator, environment_energies, n_hopping_attempts, n_hops,
                       local_feature_classifier=None):
     energy_key, local_env_calculator, local_feature_classifier, exchange_operator = setup_local_optimization(
